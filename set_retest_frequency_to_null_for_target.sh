@@ -47,8 +47,7 @@ fi
 
 case "$5" in
   "never" | "daily" | "weekly")
-    echo "Valid argument: $argument"
-    # Process the argument here
+    echo "Desired frequency: $5"
     ;;
   *)
     echo "Error: Invalid argument. Please use 'never', 'daily', or 'weekly'."
@@ -80,7 +79,20 @@ fi
 
 echo ""
 echo "Step 2/3: Finding projects for target ID $TARGET_ID"
-PROJECT_IDS=$(curl -s -H "Authorization: token ${SNYK_TOKEN}" -H 'Content-type: application/vnd.api+json' https://api.snyk.io/rest/orgs/${SNYK_ORG_ID}/projects\?version\=2024-06-06\&target_id\=${TARGET_ID} | jq '.data | .[].id')
+PAGE=$(curl -s -H "Authorization: token ${SNYK_TOKEN}" -H 'Content-type: application/vnd.api+json' https://api.snyk.io/rest/orgs/${SNYK_ORG_ID}/projects\?version\=2024-06-06\&target_id\=${TARGET_ID})
+PROJECT_IDS=$(echo $PAGE | jq '.data | .[].id')
+NEXT_PAGE=$(echo $PAGE | jq '.links.next')
+
+while [ -n "$NEXT_PAGE" ];
+do
+NEXT_PAGE=$(echo $NEXT_PAGE | tr -d '"')
+PAGE=$(curl -s -H "Authorization: token ${SNYK_TOKEN}" -H 'Content-type: application/vnd.api+json' https://api.snyk.io${NEXT_PAGE})
+if [ -n "$PAGE" ]; then
+  PROJECT_IDS+="
+  $(echo $PAGE | jq '.data | .[].id')"
+fi
+NEXT_PAGE=$(echo $PAGE | jq '.links.next')
+done
 
 echo "  => Found projects:"
 while read -r project; do
