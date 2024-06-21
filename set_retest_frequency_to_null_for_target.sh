@@ -65,7 +65,7 @@ FREQUENCY=$5
 
 echo ""
 echo "Step 1/3: Finding target ID for $SNYK_TARGET_NAME"
-TARGET_ID=$(curl -s -H "Authorization: token ${SNYK_TOKEN}" -H 'Content-type: application/vnd.api+json' https://api.snyk.io/rest/orgs/${SNYK_ORG_ID}/targets\?version\=2024-06-06\&display_name\=${SNYK_TARGET_NAME} | jq '.data | .[0].id')
+TARGET_ID=$(curl -s -H "Authorization: token ${SNYK_TOKEN}" -H 'Content-type: application/vnd.api+json' https://api.snyk.io/rest/orgs/${SNYK_ORG_ID}/targets\?version\=2024-06-06\&limit\=100\&display_name\=${SNYK_TARGET_NAME} | jq '.data | .[0].id')
 
 TARGET_ID=$(echo "$TARGET_ID" | tr -d '"')
 
